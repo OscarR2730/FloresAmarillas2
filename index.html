@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Un Campo de Flores Amarillas para Ti</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            background: linear-gradient(180deg, #0b0b2a 0%, #1e133d 30%, #4a1942 60%, #89313a 80%, #cc5f27 100%);
+            font-family: 'Georgia', serif;
+            height: 100vh;
+            width: 100vw;
+        }
+        
+        /* Fondo de niebla / suelo */
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 20vh;
+            background: linear-gradient(to top, rgba(10, 5, 20, 0.9), transparent);
+            z-index: 1;
+        }
+
+        /* Contenedor de Texto */
+        .message-container {
+            position: absolute;
+            top: 15%;
+            width: 100%;
+            text-align: center;
+            z-index: 1000;
+            pointer-events: none; /* Permite que los clics pasen al fondo */
+            padding: 0 20px;
+        }
+        .title {
+            color: #ffeb3b;
+            font-size: clamp(2rem, 6vw, 4rem);
+            text-shadow: 0 0 20px rgba(255, 152, 0, 0.8), 2px 2px 4px rgba(0,0,0,0.8);
+            opacity: 0;
+            animation: fadeUp 2s 1s forwards;
+            line-height: 1.2;
+        }
+        .subtitle {
+            color: #ffffff;
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            margin-top: 15px;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+            opacity: 0;
+            animation: fadeUp 2s 2.5s forwards;
+            font-style: italic;
+        }
+        .hint {
+            color: #ffcc80;
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            margin-top: 30px;
+            opacity: 0;
+            animation: fadeInOut 3s 4s infinite;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Luciérnagas */
+        .firefly {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 4px #ffeb3b;
+            opacity: 0;
+            z-index: 2;
+            animation-name: float, blink;
+            animation-timing-function: ease-in-out, ease-in-out;
+            animation-iteration-count: infinite, infinite;
+            animation-direction: alternate, alternate;
+        }
+
+        /* Clases para las flores */
+        #field {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+        }
+        .flower-sway {
+            position: absolute;
+            bottom: -5%;
+            transform-origin: bottom center;
+            animation-name: sway;
+            animation-timing-function: ease-in-out;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+        }
+        .flower-scale {
+            width: 100%;
+            height: 100%;
+            transform-origin: bottom center;
+            transform: scale(0);
+            animation: bloom 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Animaciones */
+        @keyframes fadeUp {
+            0% { opacity: 0; transform: translateY(30px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+        @keyframes float {
+            0% { transform: translateY(0) translateX(0); }
+            100% { transform: translateY(-150px) translateX(80px); }
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.9; }
+        }
+        @keyframes sway {
+            0% { transform: rotate(-6deg); }
+            100% { transform: rotate(6deg); }
+        }
+        @keyframes bloom {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ground"></div>
+
+    <div class="message-container">
+        <h1 class="title">¡Feliz Día de las Flores Amarillas!</h1>
+        <p class="subtitle">A la niña más bonita de todas 💛</p>
+        <p class="hint">Toca la pantalla para plantar más magia ✨</p>
+    </div>
+
+    <div id="fireflies"></div>
+    <div id="field"></div>
+
+    <script>
+        // Generador del SVG del Girasol
+        function getSunflowerSVG() {
+            let petalsHTML = '';
+            // Capa trasera de pétalos
+            for (let i = 0; i < 16; i++) {
+                let angle = (360 / 16) * i;
+                petalsHTML += `<ellipse cx="50" cy="35" rx="7" ry="24" fill="#fbc02d" transform="rotate(${angle} 50 35)" />`;
+            }
+            // Capa frontal de pétalos (un poco más oscuros y desplazados)
+            for (let i = 0; i < 16; i++) {
+                let angle = (360 / 16) * i + (360/32);
+                petalsHTML += `<ellipse cx="50" cy="35" rx="5" ry="20" fill="#f9a825" transform="rotate(${angle} 50 35)" />`;
+            }
+
+            return `
+            <svg viewBox="0 0 100 120" width="100%" height="100%" preserveAspectRatio="xMidYMax slice">
+                <!-- Tallo -->
+                <path d="M50,35 Q45,80 50,120" stroke="#388e3c" stroke-width="4" fill="none" />
+                <!-- Hojas -->
+                <path d="M50,70 Q70,60 85,75 Q70,85 50,70" fill="#4caf50" />
+                <path d="M50,85 Q30,75 15,90 Q30,100 50,85" fill="#4caf50" />
+                <!-- Pétalos -->
+                ${petalsHTML}
+                <!-- Centro de la flor -->
+                <circle cx="50" cy="35" r="14" fill="#4e342e" />
+                <circle cx="50" cy="35" r="12" fill="#3e2723" />
+                <circle cx="50" cy="35" r="8" fill="#212121" />
+                <circle cx="50" cy="35" r="12" fill="none" stroke="#5d4037" stroke-width="2" stroke-dasharray="1,2"/>
+            </svg>
+            `;
+        }
+
+        const field = document.getElementById('field');
+
+        // Función para crear una flor en el DOM
+        function createFlowerDOM(x, size, delay, duration) {
+            const swayWrapper = document.createElement('div');
+            swayWrapper.className = 'flower-sway';
+            swayWrapper.style.left = `calc(${x}vw - ${size/2}px)`;
+            swayWrapper.style.width = `${size}px`;
+            swayWrapper.style.height = `${size * 1.2}px`; 
+            swayWrapper.style.animationDuration = `${duration}s`;
+            swayWrapper.style.animationDelay = `-${Math.random() * 5}s`; // Desfase para que no se muevan todas igual
+
+            const scaleWrapper = document.createElement('div');
+            scaleWrapper.className = 'flower-scale';
+            scaleWrapper.style.animationDelay = `${delay}s`;
+            scaleWrapper.innerHTML = getSunflowerSVG();
+            
+            swayWrapper.appendChild(scaleWrapper);
+            field.appendChild(swayWrapper);
+        }
+
+        // 1. Generar el campo de flores inicial
+        const flowers = [];
+        const isMobile = window.innerWidth < 768;
+        const flowerCount = isMobile ? 25 : 45; // Menos flores en celular para no saturarlo
+
+        for(let i=0; i < flowerCount; i++) {
+            flowers.push({
+                x: Math.random() * 100,
+                size: 50 + Math.random() * 150, // Tamaños entre 50px y 200px
+                delay: 0.5 + Math.random() * 3, // Tardan entre 0.5s y 3.5s en salir
+                duration: 3 + Math.random() * 4 // Velocidad a la que se mecen
+            });
+        }
+        
+        // Ordenar por tamaño para que las más pequeñas queden al fondo visualmente (z-index natural)
+        flowers.sort((a,b) => a.size - b.size);
+        flowers.forEach(f => createFlowerDOM(f.x, f.size, f.delay, f.duration));
+
+        // 2. Generar luciérnagas mágicas
+        const fireflyContainer = document.getElementById('fireflies');
+        for (let i = 0; i < 30; i++) {
+            let f = document.createElement('div');
+            f.className = 'firefly';
+            f.style.left = `${Math.random() * 100}vw`;
+            f.style.top = `${Math.random() * 100}vh`;
+            f.style.animationDuration = `${6 + Math.random() * 6}s, ${1 + Math.random() * 2}s`;
+            f.style.animationDelay = `${Math.random() * 5}s, ${Math.random() * 5}s`;
+            fireflyContainer.appendChild(f);
+        }
+
+        // 3. Interacción: Plantar flores al tocar la pantalla
+        document.addEventListener('click', (e) => {
+            let x = (e.clientX / window.innerWidth) * 100;
+            // Flor grande por ser plantada por el usuario
+            let size = 150 + Math.random() * 80; 
+            createFlowerDOM(x, size, 0, 3 + Math.random() * 3);
+        });
+
+    </script>
+</body>
+</html>
